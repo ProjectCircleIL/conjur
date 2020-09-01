@@ -10,14 +10,10 @@ module Authentication
   module AuthnK8s
 
     KubectlExec ||= CommandClass.new(
-      dependencies: { logger: Rails.logger },
-      inputs: %i( k8s_object_lookup
-                  pod_namespace
-                  pod_name
-                  container
-                  cmds
-                  body
-                  stdin )
+      dependencies: {
+        logger: Rails.logger
+      },
+      inputs:       %i(k8s_object_lookup pod_namespace pod_name container cmds body stdin)
     ) do
 
       DEFAULT_KUBECTL_EXEC_COMMAND_TIMEOUT = 5
@@ -34,8 +30,8 @@ module Authentication
         @message_log    = MessageLog.new
         @channel_closed = false
 
-        url = server_url(@cmds, @stdin)
-        headers = kubeclient.headers.clone
+        url       = server_url(@cmds, @stdin)
+        headers   = kubeclient.headers.clone
         ws_client = WebSocket::Client::Simple.connect(url, headers: headers)
 
         add_websocket_event_handlers(ws_client, @body, @stdin)
@@ -64,7 +60,7 @@ module Authentication
       end
 
       def on_open(ws_client, body, stdin)
-        hs = ws_client.handshake
+        hs       = ws_client.handshake
         hs_error = hs.error
 
         if hs_error
@@ -149,19 +145,19 @@ module Authentication
 
       def query_string(cmds, stdin)
         stdin_part = stdin ? ['stdin=true'] : []
-        cmds_part = cmds.map { |cmd| "command=#{CGI.escape(cmd)}" }
+        cmds_part  = cmds.map { |cmd| "command=#{CGI.escape(cmd)}" }
         (base_query_string_parts + stdin_part + cmds_part).join("&")
       end
 
       def base_query_string_parts
-        ["container=#{CGI.escape(@container)}", "stderr=true", "stdout=true"]
+        %W(container=#{CGI.escape(@container)} stderr=true stdout=true)
       end
 
       def server_url(cmds, stdin)
-        api_uri = kubeclient.api_endpoint
+        api_uri  = kubeclient.api_endpoint
         base_url = "wss://#{api_uri.host}:#{api_uri.port}"
-        path = "/api/v1/namespaces/#{@pod_namespace}/pods/#{@pod_name}/exec"
-        query = query_string(cmds, stdin)
+        path     = "/api/v1/namespaces/#{@pod_namespace}/pods/#{@pod_name}/exec"
+        query    = query_string(cmds, stdin)
         "#{base_url}#{path}?#{query}"
       end
 
@@ -191,30 +187,24 @@ module Authentication
         stdin: false)
         call(
           k8s_object_lookup: k8s_object_lookup,
-          pod_namespace: pod_namespace,
-          pod_name: pod_name,
-          container: container,
-          cmds: cmds,
-          body: body,
-          stdin: stdin
+          pod_namespace:     pod_namespace,
+          pod_name:          pod_name,
+          container:         container,
+          cmds:              cmds,
+          body:              body,
+          stdin:             stdin
         )
       end
 
-      def copy(k8s_object_lookup:,
-        pod_namespace:,
-        pod_name:,
-        path:,
-        content:,
-        mode:,
-        container: 'authenticator')
+      def copy(k8s_object_lookup:, pod_namespace:, pod_name:, path:, content:, mode:, container: 'authenticator')
         execute(
           k8s_object_lookup: k8s_object_lookup,
-          pod_namespace: pod_namespace,
-          pod_name: pod_name,
-          container: container,
-          cmds: ['tar', 'xvf', '-', '-C', '/'],
-          body: tar_file_as_string(path, content, mode),
-          stdin: true
+          pod_namespace:     pod_namespace,
+          pod_name:          pod_name,
+          container:         container,
+          cmds:              %w(tar xvf - -C /),
+          body:              tar_file_as_string(path, content, mode),
+          stdin:             true
         )
       rescue Errors::Authentication::AuthnK8s::CommandTimedOut
         # The websocket may have not return the response, verify that the file is present in the container

@@ -71,10 +71,10 @@ module Authentication
       def install_signed_cert
         pod_namespace = spiffe_id.namespace
         pod_name = spiffe_id.name
-        cert_file_path = "/etc/conjur/ssl/client.pem"
+        cert_file_path = "etc/conjur/ssl/client.pem"
         @logger.debug(LogMessages::Authentication::AuthnK8s::CopySSLToPod.new(
           container_name,
-          cert_file_path,
+          "/#{cert_file_path}",
           pod_namespace,
           pod_name
         ))

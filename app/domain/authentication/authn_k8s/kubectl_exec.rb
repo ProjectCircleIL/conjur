@@ -33,6 +33,14 @@ module Authentication
         wait_for_close_message
 
         unless @channel_closed
+          @logger.debug(
+            LogMessages::Authentication::AuthnK8s::PodExecCommandTimedOut.new(
+              timeout,
+              @container,
+              @pod_name
+            )
+          )
+          ws_client.send(nil, type: :close)
           raise Errors::Authentication::AuthnK8s::CommandTimedOut.new(
             @container,
             @pod_name
@@ -186,6 +194,20 @@ module Authentication
           cmds: ['tar', 'xvf', '-', '-C', '/'],
           body: tar_file_as_string(path, content, mode),
           stdin: true
+        )
+      rescue Errors::Authentication::AuthnK8s::CommandTimedOut
+        # The websocket may have not return the response, verify that the file is present in the container
+        @logger.debug(
+          LogMessages::Authentication::AuthnK8s::VerifyCopySSLToPod.new(container, path)
+        )
+        execute(
+          k8s_object_lookup: k8s_object_lookup,
+          pod_namespace:     pod_namespace,
+          pod_name:          pod_name,
+          container:         container,
+          cmds:              %W(ls #{path}),
+          body:              nil,
+          stdin:             false
         )
       end
 

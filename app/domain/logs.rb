@@ -154,6 +154,11 @@ module LogMessages
         code: "CONJ00015D"
       )
 
+      VerifyCopySSLToPod = ::Util::TrackableLogMessageClass.new(
+        msg:  "Verifying SSL certificate is present in {0-container-name}:{1-cert-file-path}",
+        code: "CONJ00049D"
+      )
+
       CopySSLToPodSuccess = ::Util::TrackableLogMessageClass.new(
         msg:  "Copied SSL certificate successfully",
         code: "CONJ00037D"
@@ -173,6 +178,13 @@ module LogMessages
         msg:  "Setting common name to {0-full-host-name}",
         code: "CONJ00028D"
       )
+
+      PodExecCommandTimedOut = ::Util::TrackableLogMessageClass.new(
+        msg:  "Command timed out after {0} seconds in container '{1}' of pod '{2}', " \
+              "Closing connection",
+        code: "CONJ00033E"
+      )
+
     end
 
     module AuthnIam

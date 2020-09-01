@@ -134,7 +134,7 @@ module LogMessages
       )
 
       PodChannelData = ::Util::TrackableLogMessageClass.new(
-        msg:  "Pod '{0-pod-name}', channel '{1-cahnnel-name}': {2-message-data}",
+        msg:  "Pod '{0-pod-name}', channel '{1-cahnnel-name}', data: {2-message-data}",
         code: "CONJ00012D"
       )
 
@@ -177,6 +177,11 @@ module LogMessages
       SetCommonName = ::Util::TrackableLogMessageClass.new(
         msg:  "Setting common name to {0-full-host-name}",
         code: "CONJ00028D"
+      )
+
+      PodExecCommand = ::Util::TrackableLogMessageClass.new(
+        msg:  "Executing command '{0-command}' in container {1-container-name} of pod {2-pod-name}",
+        code: "CONJ00047D"
       )
 
       PodExecCommandTimedOut = ::Util::TrackableLogMessageClass.new(

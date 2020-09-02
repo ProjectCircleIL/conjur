@@ -12,6 +12,8 @@ function conjurcmd() {
 }
 
 function cucumbercmd() {
+  echo "dvir"
+  sleep 300
   pod_name=$(kubectl get pods -l app=cucumber-authn-k8s -o=jsonpath='{.items[].metadata.name}')
   interactive=$1
   if [ $interactive = '-i' ]; then

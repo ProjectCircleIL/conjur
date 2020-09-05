@@ -20,7 +20,7 @@ module Authentication
     attribute :service_id,         ::Types::NonEmptyString.optional
     attribute :resource_class,     (::Types::Any.default { ::Resource })
 
-    def self.from_string(account, str)
+    def self.from_string(account, str) #<---------
       type, id = *str.split('/', 2)
       self.new(account: account, authenticator_name: type, service_id: id)
     end

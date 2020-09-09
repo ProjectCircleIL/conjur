@@ -68,6 +68,7 @@ pipeline {
 
     stage('Run Tests') {
       parallel {
+        /*
         stage('RSpec') {
           steps { sh 'ci/test rspec' }
         }
@@ -126,9 +127,26 @@ pipeline {
                   echo "$(retrieve_token "full" "invalid_audience")" > "gcp_token_invalid_audience"
                   echo "$(retrieve_token "standard" "conjur/cucumber/host/test-app")" > "gcp_token_standard_format"
                 '''
-
                 stash name: 'authnGcpTokens', includes: 'gcp_token_valid,gcp_token_invalid_audience,gcp_token_standard_format,gcp_token_user,gcp_token_non_existing_host,gcp_token_non_existing_account,gcp_token_non_rooted_host', allowEmpty:false
                 env.GCP_TOKENS_FETCHED = "true"
+              }
+            }
+          }
+        }
+        */
+        stage('GCP Authenticator preparation - deploy function') {
+          environment {
+            GCP_FETCH_TOKEN_FUNCTION = "fetch_token_${BUILD_NUMBER}"
+          }
+          steps {
+             dir('ci/authn-gcp'){
+               sh 'summon -f ci/authn-gcp/secrets.yml -f ci/authn-gcp/run-gcloud.sh'
+             }
+          }
+          post {
+            always {
+              dir('ci/authn-gcp'){
+                //sh 'summon cleanup-function.sh'
               }
             }
           }
@@ -147,7 +165,7 @@ pipeline {
                 unstash 'authnGcpTokens'
               }
 
-              sh 'ci/test cucumber_authenticators_gcp'
+          //    sh 'ci/test cucumber_authenticators_gcp'
             }
           }
         }

@@ -124,7 +124,7 @@ class AuthenticateController < ApplicationController
       service_id:                    params[:service_id],
       client_ip:                     request.ip,
       csr:                           request.body.read,
-      cert_installation_path:        request.headers["Certificate-Install-Path"]
+      cert_installation_path:        request.headers["Certificate-Install-Path"],
 
       # The host-id is split in the client where the suffix is in the CSR
       # and the prefix is in the header. This is done to maintain backwards-compatibility

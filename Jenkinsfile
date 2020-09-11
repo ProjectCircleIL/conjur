@@ -134,13 +134,14 @@ pipeline {
           }
         }
         */
+        
         stage('GCP Authenticator preparation - deploy function') {
           environment {
             GCP_FETCH_TOKEN_FUNCTION = "fetch_token_${BUILD_NUMBER}"
           }
           steps {
              dir('ci/authn-gcp'){
-               sh 'summon -f ci/authn-gcp/secrets.yml -f ci/authn-gcp/run-gcloud.sh'
+               sh ('summon -f ci/authn-gcp/secrets.yml ci/authn-gcp/run-gcloud.sh')
              }
           }
           post {

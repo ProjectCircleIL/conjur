@@ -69,10 +69,14 @@ module Authentication
         @validate_pod_request.(pod_request: pod_request)
       end
 
+      def set_cert_installation_path
+        @cert_installation_path.nil? || @cert_instatllation_path.empty? ? DEFAULT_CERT_PATH : @cert_installation_path
+      end
+
       def install_signed_cert
         pod_namespace = spiffe_id.namespace
         pod_name = spiffe_id.name
-        cert_file_path = @cert_path.nil? || @cert_path.empty? ? DEFAULT_CERT_PATH : @cert_installation_path
+        cert_file_path = set_cert_installation_path
         @logger.debug(LogMessages::Authentication::AuthnK8s::CopySSLToPod.new(
           container_name,
           cert_file_path,

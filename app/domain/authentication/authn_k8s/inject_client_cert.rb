@@ -68,27 +68,41 @@ module Authentication
         @validate_pod_request.(pod_request: pod_request)
       end
 
+      def sh(cmd)
+        return ["/bin/sh", "-c", cmd]
+      end
+
+      def exec(cmd, pod_name, pod_namespace)
+        r = @kubectl_exec.new.execute(
+            k8s_object_lookup: k8s_object_lookup,
+            pod_namespace: pod_namespace,
+            pod_name: pod_name,
+            container: container_name,
+            cmds: sh(cmd)
+        )
+        validate_cert_installation(r)
+      end
+
       def install_signed_cert
         pod_namespace = spiffe_id.namespace
         pod_name = spiffe_id.name
-        cert_file_path = "etc/conjur/ssl/client.pem"
+        cert_file_path = "/etc/conjur/ssl/client.pem"
         @logger.debug(LogMessages::Authentication::AuthnK8s::CopySSLToPod.new(
           container_name,
-          "/#{cert_file_path}",
+          "#{cert_file_path}",
           pod_namespace,
           pod_name
         ))
 
-        resp = @kubectl_exec.new.copy(
-          k8s_object_lookup: k8s_object_lookup,
-          pod_namespace: pod_namespace,
-          pod_name: pod_name,
-          container: container_name,
-          path: cert_file_path,
-          content: cert_to_install.to_pem,
-          mode: 0o644
-        )
-        validate_cert_installation(resp)
+        @logger.debug(LogMessages::Authentication::AuthnK8s::CopySSLToPod.new(container_name,"#{cert_file_path}",pod_namespace,pod_name))
+
+        exec("mkdir -p /etc/conjur/ssl", pod_name, pod_namespace)
+
+        cert_b64 = Base64.strict_encode64(cert_to_install.to_pem)
+        exec("echo %s | base64 -d > %s" % [cert_b64, cert_file_path], pod_name, pod_namespace)
+
+        exec("ls /etc/conjur/ssl/client.pem", pod_name, pod_namespace)
+
         @logger.debug(LogMessages::Authentication::AuthnK8s::CopySSLToPodSuccess.new)
       end
 
